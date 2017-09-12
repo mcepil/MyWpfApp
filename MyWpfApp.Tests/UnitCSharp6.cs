@@ -1,19 +1,56 @@
 ﻿using MyWpfApp.CSharp6;
 using System;
+using System.Collections;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace MyWpfApp.Tests
 {
+    internal class TestDebugListener : DefaultTraceListener
+    {
+        public string LastMessage { get; private set; }
+
+        public override void WriteLine(string message)
+        {
+            LastMessage = message;
+            base.WriteLine(message);
+        }
+    }
+
     public class UnitCSharp6
     {
+        TestDebugListener testDebugListener { get; } = new TestDebugListener();
+
+        public UnitCSharp6()
+        {
+            Debug.Listeners.Remove("Default");
+            Debug.Listeners.Add(testDebugListener);
+        }
+
         [Fact]
         public void AssertUserHasId()
         {
             var user = new User();
             Assert.NotNull(user.Id);
             Assert.NotEqual(user.Id, Guid.Empty);
+        }
+
+        [Fact]
+        public void AssertDoSomething()
+        {
+            var user = new User();
+            user.DoSomething();
+            Assert.Equal("Something", testDebugListener.LastMessage);
+        }
+
+        [Fact]
+        public void AssertDoSomethingLambda()
+        {
+            var user = new User();
+            user.DoSomethingLambda("test");
+            Assert.Contains("test", testDebugListener.LastMessage);
         }
 
         [Fact]
@@ -42,6 +79,17 @@ namespace MyWpfApp.Tests
 
             Assert.NotNull(eventUser);
             Assert.Equal(user.Id, eventUser.Id);
+        }
+
+        [Fact]
+        public void AssertEventNullConditional()
+        {
+            var user = new User();
+
+            //EventHandler is null at this point
+            var ex = Record.Exception(() => user.Speak());
+
+            Assert.Null(ex);
         }
 
         [Theory]
@@ -110,9 +158,10 @@ namespace MyWpfApp.Tests
         {
             var user = new User();
 
-            var response = Task.Run(() => user.AwaitInTryCatch("http://fake.uri.that.never.existed.ever")).Result;
+            var response = Task.Run(() => user.AwaitInTryCatch("http://fake.google.com")).Result;
 
             Assert.StartsWith("AwaitInTryCatch exception caught:", response);
+            Assert.Contains("GitHub", response);
         }
 
         [Fact]
@@ -124,10 +173,11 @@ namespace MyWpfApp.Tests
 
             Assert.NotNull(response);
             Assert.DoesNotContain("AwaitInTryCatch exception caught:", response);
+            Assert.Contains("Google", response);
         }
 
         [Fact]
-        public void AssersUsersCanAddUser()
+        public void AssertUsersCanAddUser()
         {
             //empty collection
             var users1 = new Users();
@@ -142,6 +192,20 @@ namespace MyWpfApp.Tests
 
             Assert.Equal(0, users1.Count());
             Assert.Equal(3, users2.Count());
+        }
+
+        [Fact]
+        public void AsserUsersEnumerable()
+        {
+            IEnumerable users = new Users()
+            {
+                new User() { Name = "test1" },
+                new User() { Name = "test2" }
+            };
+
+            var enumerator = users.GetEnumerator();
+
+            Assert.True(enumerator.MoveNext());
         }
     }
 }

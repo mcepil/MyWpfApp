@@ -73,17 +73,18 @@ namespace MyWpfApp.CSharp6
 
         public async Task<string> AwaitInTryCatch(string uri)
         {
+            HttpClient client = new HttpClient();
             try
             {
-                HttpClient client = new HttpClient();
-                //previously it was not possible to await inside of try block (in C# 6 you can await in catch and finally too)
                 return await client.GetStringAsync(uri);
             }
             catch (Exception ex)
             {
                 var message = $"AwaitInTryCatch exception caught: {ex.Message}";
                 WriteLine(message);
-                return message;
+                //previously it was not possible to await inside of try block (in C# 6 you can await in finally too)
+                var fallbackResponse = await client.GetStringAsync("https://github.build.ge.com/");
+                return $"{message}, fallback url reponse: {fallbackResponse}";
             }
         }
     }
