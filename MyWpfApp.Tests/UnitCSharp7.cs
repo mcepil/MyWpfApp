@@ -1,5 +1,6 @@
 ﻿using MyWpfApp.CSharp7;
 using System;
+using System.Globalization;
 using System.Linq;
 using Xunit;
 
@@ -88,7 +89,7 @@ namespace MyWpfApp.Tests
         {
             var car = new Car(4, 4, 50);
             var routes = (from routeDistance in routeDistances
-                select new Route(Decimal.Parse(routeDistance))).ToArray();
+                select new Route(Decimal.Parse(routeDistance, CultureInfo.InvariantCulture))).ToArray();
 
             car.Refuel();
             var canGo = car.CanGoOnRoutes(routes);

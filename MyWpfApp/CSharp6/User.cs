@@ -83,7 +83,7 @@ namespace MyWpfApp.CSharp6
                 var message = $"AwaitInTryCatch exception caught: {ex.Message}";
                 WriteLine(message);
                 //previously it was not possible to await inside of try block (in C# 6 you can await in finally too)
-                var fallbackResponse = await client.GetStringAsync("https://github.build.ge.com/");
+                var fallbackResponse = await client.GetStringAsync("https://github.com/");
                 return $"{message}, fallback url reponse: {fallbackResponse}";
             }
         }
